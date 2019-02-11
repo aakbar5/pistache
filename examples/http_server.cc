@@ -78,7 +78,6 @@ private:
     }
 };
 
-
 class MyHandler : public Http::Handler {
 
     HTTP_PROTOTYPE(MyHandler)
@@ -111,7 +110,6 @@ class MyHandler : public Http::Handler {
                 else {
                     response.send(Http::Code::Ok, "PONG");
                 }
-
             }
         }
         else if (req.resource() == "/echo") {
@@ -144,9 +142,19 @@ class MyHandler : public Http::Handler {
                 }, Async::NoExcept);
             }
         } else {
-            response.send(Http::Code::Not_Found);
-        }
 
+            bool no_resp = true;
+            for(auto&& cookie: req.cookies()) {
+                no_resp = false;
+                response.cookies().add(cookie);
+                response.send(Http::Code::Ok, "Ok");
+            }
+
+            if (no_resp) {
+                std::cout << "Unknown request is received # "<< req.resource() << endl;
+                response.send(Http::Code::Not_Found);
+            }
+        }
     }
 
     void onTimeout(
@@ -157,30 +165,36 @@ class MyHandler : public Http::Handler {
             .send(Http::Code::Request_Timeout, "Timeout")
             .then([=](ssize_t) { }, PrintException());
     }
-
 };
 
 int main(int argc, char *argv[]) {
+
+    int thread_count = 2;
     Port port(9080);
 
-    int thr = 2;
+    // Accepted parameters:
+    //  - argv[1] -> port number
+    //  - argv[2] -> number of threads
 
     if (argc >= 2) {
         port = std::stol(argv[1]);
+    }
 
-        if (argc == 3)
-            thr = std::stol(argv[2]);
+    if (argc >= 3) {
+        thread_count = std::stol(argv[2]);
     }
 
     Address addr(Ipv4::any(), port);
-
-    cout << "Cores = " << hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
-
     auto server = std::make_shared<Http::Endpoint>(addr);
 
+    std::cout << "Pistache webserver server is running:" << std::endl;
+    std::cout << " - Address: " << addr.toString() << std::endl;
+    std::cout << " - Threads: " << thread_count << std::endl;
+    std::cout << " - Cores = " << hardware_concurrency() << endl;
+    std::cout << std::endl;
+
     auto opts = Http::Endpoint::options()
-        .threads(thr)
+        .threads(thread_count)
         .flags(Tcp::Options::InstallSignalHandler);
     server->init(opts);
     server->setHandler(Http::make_handler<MyHandler>());
@@ -188,4 +202,5 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Shutdowning server" << std::endl;
     server->shutdown();
+    return 0;
 }

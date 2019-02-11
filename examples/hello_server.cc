@@ -16,12 +16,18 @@ public:
 
     void onRequest(const Http::Request& request, Http::ResponseWriter response) override{
         UNUSED(request);
-        response.send(Pistache::Http::Code::Ok, "Hello World\n");
+        response.send(Pistache::Http::Code::Ok, "Hello World from Pistache!\n");
     }
 };
 
-int main() {
+int main(int argc, char *argv[]) {
+
     Pistache::Address addr(Pistache::Ipv4::any(), Pistache::Port(9080));
+
+    std::cout << "Pistache webserver is listening on " << addr.toString() << std::endl;
+    std::cout << " - Issue 'curl http://" << addr.toString() << "'" << std::endl << std::endl;
+    std::cout << std::endl;
+
     auto opts = Pistache::Http::Endpoint::options()
         .threads(1);
 
@@ -31,4 +37,9 @@ int main() {
     server.serve();
 
     server.shutdown();
+
+    UNUSED(argc);
+    UNUSED(argv);
+
+    return 0;
 }
