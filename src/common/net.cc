@@ -299,6 +299,11 @@ Address::family() const {
     return family_;
 }
 
+std::string
+Address::toString() const {
+    return host() + ":" + port().toString();
+}
+
 void Address::init(const std::string& addr)
 {
     AddressParser parser(addr);

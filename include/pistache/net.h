@@ -155,6 +155,7 @@ public:
     std::string host() const;
     Port port() const;
     int family() const;
+    std::string toString() const;
 
 private:
     void init(const std::string& addr);
