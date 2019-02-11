@@ -24,7 +24,6 @@ uint hardware_concurrency() {
     return std::thread::hardware_concurrency();
 }
 
-
 bool make_non_blocking(int fd)
 {
     int flags = fcntl (fd, F_GETFL, 0);
@@ -186,9 +185,11 @@ namespace Polling {
         struct epoll_event evs[Const::MaxEvents];
 
         int ready_fds = -1;
-        do {
+        // No need to wait in loop here - it allows to shutdown
+        // server once terminate signal is received from the user.
+        //do {
             ready_fds = epoll_wait(epoll_fd, evs, maxEvents, timeout.count());
-        } while (ready_fds < 0 && errno == EINTR);
+        //} while (ready_fds < 0 && errno == EINTR);
 
         for (int i = 0; i < ready_fds; ++i) {
             const struct epoll_event *ev = evs + i;
