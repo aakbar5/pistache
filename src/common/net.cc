@@ -241,7 +241,6 @@ Address::Address(std::string host, Port port)
     init(std::move(addr));
 }
 
-
 Address::Address(std::string addr)
 {
     init(std::move(addr));
@@ -316,7 +315,8 @@ void Address::init(const std::string& addr)
 
         if (!IsIPv6HostName(host_))
         {
-            throw std::invalid_argument("Invalid IPv6 address");
+            std::string error_msg = std::string("Invalid IPv6 address (addr=") + addr + std::string(")");
+            throw std::invalid_argument(error_msg);
         }
     }
     else if (family_ == AF_INET)
@@ -333,7 +333,8 @@ void Address::init(const std::string& addr)
 
         if (!IsIPv4HostName(host_))
         {
-            throw std::invalid_argument("Invalid IPv4 address");
+            std::string error_msg = std::string("Invalid IPv4 address (addr=") + addr + std::string(")");
+            throw std::invalid_argument(error_msg);
         }
     }
     else
@@ -341,11 +342,15 @@ void Address::init(const std::string& addr)
 
     const std::string& portPart = parser.rawPort();
     if (portPart.empty())
-            throw std::invalid_argument("Invalid port");
+        throw std::invalid_argument("Port can't be empty");
+    
     char *end = 0;
     long port = strtol(portPart.c_str(), &end, 10);
-    if (*end != 0 || port < Port::min() || port > Port::max())
-        throw std::invalid_argument("Invalid port");
+    if (*end != 0 || port < Port::min() || port > Port::max()) {
+        std::string error_msg = std::string("Port number (") + std::to_string(port) + std::string(") is not valid");
+        throw std::invalid_argument(error_msg);
+    }
+    
     port_ = Port(port);
 }
 
@@ -366,7 +371,6 @@ Error::system(const char* message) {
     str += err;
 
     return Error(std::move(str));
-
 }
 
 } // namespace Pistache
