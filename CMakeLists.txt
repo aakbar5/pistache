@@ -136,6 +136,12 @@ if (PISTACHE_BUILD_TESTS)
         include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
     endif()
 
+    # Look for libcurl
+    find_package(CURL)
+    if(NOT CURL_FOUND)
+        message(FATAL_ERROR "Unable to find libcurl")
+    endif()
+
     enable_testing()
     add_subdirectory(tests)
 endif()
